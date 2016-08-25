@@ -22,17 +22,17 @@ endef
 define inside_docker
 # Cross-compile toolchain in a docker image
  ifeq ($(strip $(DOCKER)), yes)
-  INCL += $(DOCKER_PREFIX)/esp82xx/include $(DOCKER_PREFIX)
-    $(eval SRCS:=$(addprefix $(DOCKER_PREFIX), $(SRCS)))
-    $(eval FW_FILE1:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE1)))
-    $(eval FW_FILE2:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE2)))
-    $(eval TARGET:=$(addprefix $(DOCKER_PREFIX), $(TARGET)))
-    $(eval CC:=$(DOCKCROSS) $(CC))
-    $(eval ESP_ROOT:=$(DOCKER_SDK_DEFAULT))
-    $(eval ESPTOOL_PY:=$(DOCKCROSS) $(ESPTOOL_PY))
+    INCL += $(DOCKER_PREFIX)/esp82xx/include $(DOCKER_PREFIX)
+    SRCS:=$(addprefix $(DOCKER_PREFIX), $(SRCS))
+    FW_FILE1:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE1))
+    FW_FILE2:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE2))
+    TARGET:=$(addprefix $(DOCKER_PREFIX), $(TARGET))
+    CC:=$(DOCKCROSS) $(CC)
+    ESP_ROOT:=$(DOCKER_SDK_DEFAULT)
+    ESPTOOL_PY:=$(DOCKCROSS) $(ESPTOOL_PY)
   else
-  DOCKCROSS=
-  DOCKER_PREFIX=
+    DOCKCROSS=
+    DOCKER_PREFIX=
   endif
 endef
 
