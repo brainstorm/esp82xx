@@ -19,33 +19,6 @@ usbweb ... Burn webpage by PRE-RELEASE USB loader (will probably change)
 More commands: all, clean, purge
 endef
 
-define inside_docker
-# Cross-compile toolchain in a docker image
- ifeq ($(strip $(DOCKER)), yes)
-    INCL += $(DOCKER_PREFIX)/esp82xx/include $(DOCKER_PREFIX)
-    SRCS:=$(addprefix $(DOCKER_PREFIX), $(SRCS))
-    FW_FILE1:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE1))
-    FW_FILE2:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE2))
-    TARGET:=$(addprefix $(DOCKER_PREFIX), $(TARGET))
-    CC:=$(DOCKCROSS) $(CC)
-    ESP_ROOT:=$(DOCKER_SDK_DEFAULT)
-    ESPTOOL_PY:=$(DOCKCROSS) $(ESPTOOL_PY)
-  else
-    DOCKCROSS=
-    DOCKER_PREFIX=
-  endif
-endef
-
-define outside_docker
-# Make sure the actual burning of the chip is done with the system-wide esptool.py
-# since it's the only one that has working (privileged) /dev/*USB access.
-  ifeq ($(strip $(DOCKER)), yes)
-    $(warning Warning: Docker cannot flash via in-docker esptool.py (yet) due to USB issues, see: http://bit.ly/2b9qFY2)
-    $(eval ESPTOOL_PY:=$(shell which esptool.py))
-    $(eval FW_FILE1:= image.elf-0x00000.bin)
-    $(eval FW_FILE2:= image.elf-0x40000.bin)
-  endif
-endef
 
 .PHONY : all clean cleanall netburn burnweb burn $(BIN_TARGET) netweb getips help
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
@@ -96,7 +69,7 @@ $(FW_FILE1) $(FW_FILE2) : $(TARGET)
 	$(ESPTOOL_PY) elf2image $(TARGET)
 
 $(TARGET) : $(SRCS) Makefile
-	$(eval $(call inside_docker))
+	$(call inside_docker)
 	$(CC) $(CFLAGS) $(SRCS) -flto $(LINKFLAGS) -o $(TARGET)
 
 debug : $(TARGET)
@@ -105,21 +78,20 @@ debug : $(TARGET)
 	$(PREFIX)size -A $(TARGET) | grep -v debug
 
 
-
 ifeq ($(CHIP), 8285)
-burn : $(FW_FILE1) $(FW_FILE2)  
-	$(eval $(call outside_docker))
+burn : $(FW_FILE1) $(FW_FILE2)
+	$(call outside_docker)
 	($(ESPTOOL_PY) $(FWBURNFLAGS) --port $(PORT) write_flash $(FLASH_WRITE_FLAGS) 0x00000 $(FW_FILE1) 0x40000 $(FW_FILE2))||(true)
 else ifeq ($(CHIP), 8266)
 burn : $(FW_FILE1) $(FW_FILE2)
-	$(eval $(call outside_docker))
+	$(call outside_docker)
 	($(ESPTOOL_PY) $(FWBURNFLAGS) --port $(PORT) write_flash $(FLASH_WRITE_FLAGS) 0x00000 $(FW_FILE1) 0x40000 $(FW_FILE2))||(true)
 else
 	$(error Error: Unknown chip '$(CHIP)')
 endif
 
 burnweb :
-	$(eval $(call outside_docker))
+	$(call outside_docker)
 	@cd web && $(MAKE) $(MFLAGS) $(MAKEOVERRIDES) clean page.mpfs #Always rebuild page.mpfs
 	($(ESPTOOL_PY) $(FWBURNFLAGS) --port $(PORT) write_flash $(PAGE_OFFSET) web/page.mpfs)||(true)
 
@@ -128,7 +100,7 @@ burnweb :
 # you have a 512kB, or 1M ESP variant.
 
 netburn : $(FW_FILE1) $(FW_FILE2)
-	$(eval $(call outside_docker))
+	$(call outside_docker)
 	@cd web && $(MAKE) $(MFLAGS) $(MAKEOVERRIDES) execute_reflash
 	web/execute_reflash $(IP) $(FW_FILE1) $(FW_FILE2)
 
@@ -141,6 +113,7 @@ usbburn : $(FW_FILE1) $(FW_FILE2)
 
 usbweb : $(FW_FILE1) $(FW_FILE2)
 	@cd web && $(MAKE) $(MFLAGS) $(MAKEOVERRIDES) usbpush
+
 
 $(BIN_TARGET): $(FW_FILE1) $(FW_FILE2)
 	@cd web \
