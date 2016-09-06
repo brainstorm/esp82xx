@@ -1,6 +1,6 @@
 # esp82xx
 
-Useful ESP8266 C Environment. 
+Useful ESP8266 C Environment.
 Includes useful libraries and some basic functionality such as a Web-GUI, flashing firmware and web-data over network and basic GPIO functions.
 Intended to be included as sub-module in derivate projects.
 
@@ -103,6 +103,9 @@ The default IP of the ESP, when it operates as it's own access point, is **192.1
 When connected to an existing WiFi Network, it will ask your DHCP-Server for an IP.
 Most WiFi routers have an option in their Web-GUI to list all IPs, that their DHCP has given out.
 
+For general troubleshooting hints, see [esptools troubleshooting page](https://github.com/themadinventor/esptool#troubleshooting).
+It is excellent!
+
 ## List of projects using esp82xx
 
  - [esp82XX-basic](https://github.com/con-f-use/esp82XX-basic)
@@ -114,6 +117,12 @@ Most WiFi routers have an option in their Web-GUI to list all IPs, that their DH
 ## Notes
 
 This section should mostly concern developers and contributors to this project.
+We try to keep the generally interesting stuff on top.
+
+### Gibberish Serial Data right after Boot
+
+If you get weird data at the start of your serial communication with the esp, don't forsake!
+The boot rom writes a log to the UART with the unusual timing of 74880 baud.
 
 ### Branches
 
@@ -158,6 +167,8 @@ Cope with submodules in top-level projects updates:
     git commit -m 'Bumped submodule version'
     git push
     ```
+
+ - Make sure you reference the master branch of submoules and test against that, when youre about to merge a dev version of top-level projects. Master-branch top-level projects sould have master-branch submodules.
 
 ### Include Binaries
 
