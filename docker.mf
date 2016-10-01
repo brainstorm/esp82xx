@@ -1,0 +1,28 @@
+define inside_docker
+# Cross-compile toolchain in a docker image
+	ifeq ($(strip $(DOCKER)),yes)
+			INCL += $(DOCKER_PREFIX)/esp82xx/include $(DOCKER_PREFIX)
+			SRCS:=$(addprefix $(DOCKER_PREFIX), $(SRCS))
+			FW_FILE1:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE1))
+			FW_FILE2:=$(addprefix $(DOCKER_PREFIX), $(FW_FILE2))
+			TARGET:=$(addprefix $(DOCKER_PREFIX), $(TARGET))
+			CC:=$(DOCKCROSS) $(CC)
+			ESP_ROOT:=$(DOCKER_SDK_DEFAULT)
+			ESPTOOL_PY:=$(DOCKCROSS) $(ESPTOOL_PY)
+	else
+			DOCKCROSS=
+			DOCKER_PREFIX=
+	endif
+endef
+
+define outside_docker
+# Make sure the actual burning of the chip is done with the system-wide esptool.py
+# since it's the only one that has working (privileged) /dev/*USB access.
+# ... unless you run (the now deprecated) VirtualBox and boot2docker.
+	ifeq ($(strip $(DOCKER)), yes)
+			$(warning Warning: Docker cannot flash via in-docker esptool.py (yet) due to USB issues, see: http://bit.ly/2b9qFY2)
+			$(eval ESPTOOL_PY:=$(shell which esptool.py))
+			$(eval FW_FILE1:= image.elf-0x00000.bin)
+			$(eval FW_FILE2:= image.elf-0x40000.bin)
+	endif
+endef

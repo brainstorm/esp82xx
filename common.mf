@@ -33,6 +33,11 @@ PAGE_SCRIPTS?=$(wildcard web/page/*.js)
 # Mechanism for getting SDK/xtensa compiler paths from shell variables
 SDK_DEFAULT = $(HOME)/esp8266/esp-open-sdk
 ESP_ROOT := $(shell echo "$$ESP_ROOT")
+ifeq ($(strip $(DOCKER)), yes)
+    ESP_ROOT := $(DOCKER_SDK_DEFAULT)
+else 
+    DOCKCROSS =
+endif
 ifeq ($(strip $(ESP_ROOT)),)
     $(warning Warning: No shell variable 'ESP_ROOT', using '$(SDK_DEFAULT)')
     ESP_ROOT := $(SDK_DEFAULT)

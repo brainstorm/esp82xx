@@ -75,6 +75,7 @@ $(FW_FILE1) $(FW_FILE2) : $(TARGET)
 	@#no need to set things like dout, and memory size.  This data is copied from the ESP back to itself on write.
 
 $(TARGET) : $(SRCS) Makefile
+	$(call inside_docker)
 	$(CC) $(CFLAGS) $(SRCS) -flto $(LINKFLAGS) -o $@
 
 debug : $(TARGET)
@@ -140,4 +141,3 @@ purge : clean
 
 bump_submodule :
 	cd esp82xx; git pull origin master; cd ..
-
